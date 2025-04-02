@@ -41,13 +41,18 @@ async def search_web(
     Returns:
         str: The search results as a formatted string.
     """
+    debug(f"Search query: {web_query}")
+    debug(f"Context: {ctx}")
+
     if ctx.deps.brave_api_key is None:
+        debug("No Brave API key provided")
         return "This is a test web search result. Please provide a Brave API key to get real search results."
 
     headers = {
         'X-Subscription-Token': ctx.deps.brave_api_key,
         'Accept': 'application/json',
     }
+    debug(f"Request headers: {headers}")
     
     with logfire.span('calling Brave search API', query=web_query) as span:
         r = await ctx.deps.client.get(
@@ -62,17 +67,23 @@ async def search_web(
         )
         r.raise_for_status()
         data = r.json()
+        debug(f"Raw API response: {data}")
         span.set_attribute('response', data)
 
     results = []
     
     # Add web results in a nice formatted way
     web_results = data.get('web', {}).get('results', [])
+    debug(f"Number of web results: {len(web_results)}")
+    
     for item in web_results[:3]:
         title = item.get('title', '')
         description = item.get('description', '')
         url = item.get('url', '')
         if title and description:
             results.append(f"Title: {title}\nSummary: {description}\nSource: {url}\n")
+            debug(f"Added result: {title}")
 
-    return "\n".join(results) if results else "No results found for the query."
+    final_result = "\n".join(results) if results else "No results found for the query."
+    debug(f"Final formatted results: {final_result}")
+    return final_result

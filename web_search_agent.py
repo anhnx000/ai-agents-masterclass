@@ -18,12 +18,24 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 load_dotenv()
 llm = os.getenv('LLM_MODEL', 'gpt-4o')
 
+# import ipdb; ipdb.set_trace()
+
+
+# client = AsyncOpenAI(
+#     base_url = 'http://localhost:11434/v1',
+#     api_key='ollama'
+# )
+
+# model = OpenAIModel(llm) if llm.lower().startswith("gpt") else OpenAIModel(llm, openai_client=client)
+
+
+# use openAI API 
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = AsyncOpenAI(
-    base_url = 'http://localhost:11434/v1',
-    api_key='ollama'
+    api_key=OPENAI_API_KEY
 )
 
-model = OpenAIModel(llm) if llm.lower().startswith("gpt") else OpenAIModel(llm, openai_client=client)
+model = OpenAIModel(llm, openai_client=client)
 
 # 'if-token-present' means nothing will be sent (and the example will work) if you don't have logfire configured
 logfire.configure(send_to_logfire='if-token-present')
