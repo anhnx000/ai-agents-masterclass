@@ -10,12 +10,12 @@ import logfire
 from devtools import debug
 from httpx import AsyncClient
 from dotenv import load_dotenv
+load_dotenv()
 
 from openai import AsyncOpenAI
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 
-load_dotenv()
 llm = os.getenv('LLM_MODEL', 'gpt-4o')
 
 # import ipdb; ipdb.set_trace()
