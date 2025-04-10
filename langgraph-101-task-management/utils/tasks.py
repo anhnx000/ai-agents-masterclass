@@ -3,6 +3,10 @@ import os
 from dataclasses import asdict, dataclass
 
 import yaml
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
@@ -28,7 +32,11 @@ def read_tasks(userid: str) -> str:
     with open(file_path, "r") as file:
         tasks = json.load(file)
 
-    return yaml.dump(tasks, sort_keys=False)
+    result =  yaml.dump(tasks, sort_keys=False)
+    
+    # print logging
+    logging.info(f"result = {result}")
+    return  result
 
 
 def mark_task_as_done(userid: str, title: str) -> str:
@@ -46,7 +54,7 @@ def mark_task_as_done(userid: str, title: str) -> str:
         FileNotFoundError: If the user's task file does not exist.
         ValueError: If no task with the given title is found.
     """
-    file_path = f"data/{userid}.json"
+    file_path = f"./data/{userid}.json"
     if not os.path.exists(file_path):
         raise FileNotFoundError("Task file not found.")
 
@@ -83,12 +91,13 @@ def add_task(userid: str, title: str) -> str:
     Raises:
         ValueError: If a task with the same title already exists.
     """
+    
     file_path = f"data/{userid}.json"
-    tasks = []
-
-    if os.path.exists(file_path):
-        with open(file_path, "r") as file:
-            tasks = json.load(file)
+    if os.path.exists(file_path) is False:
+        tasks = []
+        # raise Exception("Task file not found.")
+    with open(file_path, "r") as file:
+        tasks = json.load(file)
 
     for task in tasks:
         if task["title"] == title:
@@ -97,7 +106,11 @@ def add_task(userid: str, title: str) -> str:
     new_task = Task(title=title)
     tasks.append(asdict(new_task))
 
+    # print logging 
+    logging.info(f"task = {tasks}")
+    
     with open(file_path, "w") as file:
         json.dump(tasks, file, indent=2)
 
     return "Successfully added task"
+

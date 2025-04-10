@@ -9,9 +9,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt.tool_node import ToolNode
 from typing_extensions import TypedDict
-# import pytest
 
-from utils.task import read_tasks
+from utils.tasks import read_tasks
 
 load_dotenv()
 
@@ -26,56 +25,52 @@ class State(TypedDict):
     # Confidential stuff
     userid: str
 
-#define our tool 
+
+# Define our tool
 @tool
 def retrieve_tasks(userid: str) -> str:
-    """Reads all tasks"""
+    """
+    Returns all the tasks for the user.
+    """
     return read_tasks(userid)
 
+
 tools = [retrieve_tasks]
-tool_node = ToolNode(tools=tools) 
 
-# define our agent node 
-def agent(state: State) -> State:
-    # create a langchain model 
-    llm = ChatOpenAI(model="gpt-4o-mini").bind_tools(tools) # pass in a list of defined functions with @tool decorator
+tool_node = ToolNode(tools)
 
-    # Define a system message 
-    system_message = SystemMessage(content="You are a helpful assistant. the user is {state['userid']}")
-    
-    # define the messages 
+
+# Define our agent node
+def agent(state: State):
+    # Create a langchain model
+    llm = ChatOpenAI(model="gpt-4o-mini").bind_tools(tools)
+
+    # Define a system message
+    system_message = SystemMessage(
+        f"You are a helpful AI assistant. The user's id is {state['userid']}"
+    )
+
+    # Define the messages
     messages = [system_message] + state["messages"]
-    
-    # invoke the model 
-    response = llm.invoke(messages)
-    
-    return {"messages": [response]}
 
-# define graph 
+    # Invoke the model
+    return {"messages": [llm.invoke(messages)]}
+
+
+# Define our graph
 def create_graph():
-    graph_builder = StateGraph(State) 
-    
-    # add all the node  
+    graph_builder = StateGraph(State)
+
+    # Add all the nodes
     graph_builder.add_node("agent", agent)
     graph_builder.add_node("executor", tool_node)
-    
-    # add the edges
+    # Add the edges
     graph_builder.add_edge(START, "agent")
     graph_builder.add_edge("agent", "executor")
-    graph_builder.add_edge("executor", "agent")
-    
+    graph_builder.add_edge("executor", END)
+
     return graph_builder.compile()
 
-
-# def test_retrieve_tasks():
-#     # Test with existing user
-#     result = retrieve_tasks("YourTechBud")
-#     assert "Buy groceries" in result
-#     assert "Walk the dog" in result
-    
-#     # Test with non-existent user
-#     result = retrieve_tasks("NonExistentUser")
-#     assert result == "No tasks found"
 
 # Our main function
 def main():
@@ -93,7 +88,10 @@ def main():
             print("\n*******************************************\n")
             print(key + ":")
             print("---------------------\n")
-            print(event[key]["messages"][-1].content)
+            if event[key].get("messages") and len(event[key]["messages"]) > 0:
+                print(event[key]["messages"][-1].content)
+            else:
+                print("No messages available")
 
 
 if __name__ == "__main__":

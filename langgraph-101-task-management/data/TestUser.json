@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Complete project documentation",
+    "isDone": false
+  },
+  {
+    "title": "Schedule team meeting",
+    "isDone": true
+  },
+  {
+    "title": "Review pull requests",
+    "isDone": false
+  },
+  {
+    "title": "Update dependencies",
+    "isDone": false
+  },
+  {
+    "title": "Plan next sprint",
+    "isDone": true
+  }
+] 
